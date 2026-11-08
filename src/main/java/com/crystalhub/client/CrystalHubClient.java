@@ -1,39 +1,39 @@
 
 package com.crystalhub.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.KeyMapping.Category;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.KeyMapping;
-import org.lwjgl.glfw.GLFW;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 
 public class CrystalHubClient implements ClientModInitializer {
+
+    private static final KeyMapping.Category CATEGORY =
+        KeyMapping.Category.register(
+            Identifier.fromNamespaceAndPath("crystal_hub", "main")
+        );
 
     private static KeyMapping openMenuKey;
 
     @Override
     public void onInitializeClient() {
-        openMenuKey = KeyBindingHelper.registerKeyBinding(
+
+        openMenuKey = KeyMappingHelper.registerKeyMapping(
             new KeyMapping(
                 "key.crystal_hub.open_menu",
-                GLFW.GLFW_KEY_RIGHT_CONTROL,
-                KeyMapping.Category.MISC
+                InputConstants.Type.KEYSYM,
+                InputConstants.KEY_RIGHT_CONTROL,
+                CATEGORY
             )
         );
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.consumeClick()) {
-                Screen current = client.screen;
-
-                if (current instanceof CrystalHubScreen) {
+                if (client.screen instanceof CrystalHubScreen) {
                     client.setScreen(null);
-                } else if (current == null) {
+                } else if (client.screen == null) {
                     client.setScreen(new CrystalHubScreen());
                 }
             }
