@@ -1,0 +1,20 @@
+
+{
+  "schemaVersion": 1,
+  "id": "crystal_hub",
+  "version": "1.0.0",
+  "name": "Crystal Hub",
+  "description": "Crystal themed Minecraft client menu",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.crystalhub.client.CrystalHubClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~26.1.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
