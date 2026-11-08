@@ -24,7 +24,7 @@ public class CrystalHubClient implements ClientModInitializer {
             new KeyMapping(
                 "key.crystal_hub.open_menu",
                 InputConstants.Type.KEYSYM,
-                InputConstants.KEY_RIGHT_CONTROL,
+                345,
                 CATEGORY
             )
         );
