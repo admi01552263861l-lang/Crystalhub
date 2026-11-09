@@ -1,85 +1,190 @@
 package com.crystalhub.client;
 
-public final class CrystalHubConfig {
+import com.mojang.blaze3d.platform.InputConstants;
 
-    private CrystalHubConfig() {}
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 
-    // Combat
-    public static boolean autoClickerEnabled = false;
-    public static int cps = 5;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
-    // Aim Assist
-    public static boolean aimAssistEnabled = false;
-    public static String aimAssistTarget = "BODY"; // HEAD, BODY, LEGS
-    public static float aimAssistSmooth = 0.35f;
-    public static float aimAssistFov = 90f;
-    public static double aimAssistRange = 64.0;
+public class CrystalHubClient implements ClientModInitializer {
 
-    // Movement
-    public static boolean speedEnabled = false;
-    public static double speedMultiplier = 1.2;
+    private static final KeyMapping.Category CATEGORY =
+        KeyMapping.Category.register(
+            Identifier.fromNamespaceAndPath("crystal_hub", "main")
+        );
 
-    // Visuals
-    public static boolean playerEspEnabled = false;
-    public static boolean playerEspBoxes = true;
+    private static KeyMapping openMenuKey;
+    private static KeyMapping autoClickerKey;
+    private static KeyMapping aimAssistKey;
 
-    // Interface
-    public static boolean soundEffects = true;
-    public static boolean menuAnimations = true;
-    public static boolean moduleAnimations = true;
+    @Override
+    public void onInitializeClient() {
 
-    // Keys (GLFW)
-    public static int autoClickerKey = 71; // G
-    public static int aimAssistKey = 82;   // R
-    public static int speedKey = 0;
-    public static int playerEspKey = 0;
+        openMenuKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping(
+                "key.crystal_hub.open_menu",
+                InputConstants.Type.KEYSYM,
+                345,
+                CATEGORY
+            )
+        );
 
-    // Auto Clicker runtime
-    public static long lastClickTime = 0L;
-    public static boolean clickPressed = false;
+        autoClickerKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping(
+                "key.crystal_hub.toggle_autoclicker",
+                InputConstants.Type.KEYSYM,
+                CrystalHubConfig.autoClickerKey,
+                CATEGORY
+            )
+        );
 
-    public static long getClickInterval() {
-        int speed = Math.max(1, Math.min(cps, 10));
-        return 1000L / speed;
+        aimAssistKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping(
+                "key.crystal_hub.toggle_aimassist",
+                InputConstants.Type.KEYSYM,
+                CrystalHubConfig.aimAssistKey,
+                CATEGORY
+            )
+        );
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+
+            while (openMenuKey.consumeClick()) {
+                if (client.screen instanceof CrystalHubScreen) {
+                    client.setScreen(null);
+                } else if (client.screen == null) {
+                    client.setScreen(new CrystalHubScreen());
+                }
+            }
+
+            while (autoClickerKey.consumeClick()) {
+                CrystalHubConfig.autoClickerEnabled =
+                    !CrystalHubConfig.autoClickerEnabled;
+                CrystalHubConfig.lastClickTime = 0L;
+            }
+
+            while (aimAssistKey.consumeClick()) {
+                CrystalHubConfig.aimAssistEnabled =
+                    !CrystalHubConfig.aimAssistEnabled;
+            }
+
+            updateAutoClicker(client);
+            updateAimAssist(client);
+        });
     }
 
-    public static void setCps(int value) {
-        cps = Math.max(1, Math.min(value, 10));
-    }
-
-    public static void setSpeedMultiplier(double value) {
-        speedMultiplier = Math.max(1.0, Math.min(value, 2.0));
-    }
-
-    public static void setAimAssistTarget(String target) {
-        if (target == null) {
-            aimAssistTarget = "BODY";
+    private static void updateAutoClicker(Minecraft client) {
+        if (client.player == null || client.screen != null) {
+            releaseAttack(client);
             return;
         }
-        switch (target.toUpperCase()) {
-            case "HEAD" -> aimAssistTarget = "HEAD";
-            case "LEGS" -> aimAssistTarget = "LEGS";
-            default -> aimAssistTarget = "BODY";
+
+        if (!CrystalHubConfig.autoClickerEnabled) {
+            releaseAttack(client);
+            return;
         }
+
+        long now = System.currentTimeMillis();
+        long interval = CrystalHubConfig.getClickInterval();
+
+        if (now - CrystalHubConfig.lastClickTime >= interval) {
+            CrystalHubConfig.lastClickTime = now;
+            CrystalHubConfig.clickPressed = true;
+        } else {
+            CrystalHubConfig.clickPressed = false;
+        }
+
+        client.options.keyAttack.setDown(CrystalHubConfig.clickPressed);
     }
 
-    public static void setAimAssistSmooth(float value) {
-        aimAssistSmooth = Math.max(0.05f, Math.min(value, 1.0f));
+    private static void releaseAttack(Minecraft client) {
+        CrystalHubConfig.clickPressed = false;
+        client.options.keyAttack.setDown(false);
     }
 
-    public static void setAimAssistFov(float value) {
-        aimAssistFov = Math.max(20f, Math.min(value, 180f));
+    private static void updateAimAssist(Minecraft client) {
+        if (!CrystalHubConfig.aimAssistEnabled) return;
+        if (client.player == null || client.level == null) return;
+        if (client.screen != null) return;
+
+        LivingEntity target = findAimTarget(client);
+        if (target == null) return;
+
+        aimAt(client.player, target);
     }
 
-    public static void setAimAssistRange(double value) {
-        aimAssistRange = Math.max(4.0, Math.min(value, 128.0));
+    private static LivingEntity findAimTarget(Minecraft client) {
+        Player self = client.player;
+        LivingEntity best = null;
+        double bestDist =
+            CrystalHubConfig.aimAssistRange * CrystalHubConfig.aimAssistRange;
+        float halfFov = CrystalHubConfig.aimAssistFov * 0.5f;
+        AABB box = self.getBoundingBox().inflate(CrystalHubConfig.aimAssistRange);
+
+        for (ArmorStand stand : client.level.getEntitiesOfClass(
+                ArmorStand.class, box, e -> e.isAlive())) {
+            if (!inFov(self, stand, halfFov)) continue;
+            double d = self.distanceToSqr(stand);
+            if (d < bestDist) {
+                bestDist = d;
+                best = stand;
+            }
+        }
+
+        for (Player other : client.level.players()) {
+            if (other == self || !other.isAlive() || other.isSpectator()) continue;
+            if (!inFov(self, other, halfFov)) continue;
+            double d = self.distanceToSqr(other);
+            if (d < bestDist) {
+                bestDist = d;
+                best = other;
+            }
+        }
+        return best;
     }
 
-    public static double aimHeightFactor() {
-        return switch (aimAssistTarget) {
-            case "HEAD" -> 0.9;
-            case "LEGS" -> 0.15;
-            default -> 0.5;
-        };
+    private static boolean inFov(Player self, LivingEntity target, float halfFov) {
+        Vec3 eye = self.getEyePosition();
+        Vec3 aim = aimPoint(target);
+        Vec3 to = aim.subtract(eye).normalize();
+        double dot = self.getLookAngle().normalize().dot(to);
+        return dot >= Math.cos(Math.toRadians(halfFov));
+    }
+
+    private static Vec3 aimPoint(LivingEntity target) {
+        return target.position().add(
+            0.0,
+            target.getBbHeight() * CrystalHubConfig.aimHeightFactor(),
+            0.0
+        );
+    }
+
+    private static void aimAt(Player self, LivingEntity target) {
+        Vec3 eye = self.getEyePosition();
+        Vec3 aim = aimPoint(target);
+
+        double dx = aim.x - eye.x;
+        double dy = aim.y - eye.y;
+        double dz = aim.z - eye.z;
+        double horiz = Math.sqrt(dx * dx + dz * dz);
+
+        float yaw = (float) (Math.atan2(dz, dx) * (180.0 / Math.PI)) - 90.0f;
+        float pitch = (float) (-(Math.atan2(dy, horiz) * (180.0 / Math.PI)));
+        pitch = Mth.clamp(pitch, -90f, 90f);
+
+        float t = Mth.clamp(CrystalHubConfig.aimAssistSmooth, 0.05f, 1.0f);
+        float diff = Mth.wrapDegrees(yaw - self.getYRot());
+        self.setYRot(self.getYRot() + diff * t);
+        self.setXRot(Mth.lerp(t, self.getXRot(), pitch));
     }
 }
