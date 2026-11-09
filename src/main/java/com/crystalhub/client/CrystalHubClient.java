@@ -19,7 +19,6 @@ public class CrystalHubClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-
         openMenuKey = KeyMappingHelper.registerKeyMapping(
             new KeyMapping(
                 "key.crystal_hub.open_menu",
