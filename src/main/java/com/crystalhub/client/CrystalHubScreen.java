@@ -29,7 +29,6 @@ public final class CrystalHubScreen extends Screen {
         addTab(x, y, "Settings", 469);
 
         if (selected.equals("Combat")) {
-            // Auto Clicker toggle
             addRenderableWidget(Button.builder(
                 Component.literal("Auto Clicker  •  " +
                     (CrystalHubConfig.autoClickerEnabled ? "ON" : "OFF")),
@@ -40,7 +39,6 @@ public final class CrystalHubScreen extends Screen {
                 }
             ).bounds(x + 180, y + 128, 310, 24).build());
 
-            // CPS -
             addRenderableWidget(Button.builder(
                 Component.literal("CPS  -"),
                 b -> {
@@ -49,7 +47,6 @@ public final class CrystalHubScreen extends Screen {
                 }
             ).bounds(x + 180, y + 156, 90, 22).build());
 
-            // CPS +
             addRenderableWidget(Button.builder(
                 Component.literal("CPS  +"),
                 b -> {
@@ -58,7 +55,6 @@ public final class CrystalHubScreen extends Screen {
                 }
             ).bounds(x + 400, y + 156, 90, 22).build());
 
-            // Aim Assist toggle
             addRenderableWidget(Button.builder(
                 Component.literal("Aim Assist  •  " +
                     (CrystalHubConfig.aimAssistEnabled ? "ON" : "OFF")),
@@ -69,7 +65,6 @@ public final class CrystalHubScreen extends Screen {
                 }
             ).bounds(x + 180, y + 188, 310, 24).build());
 
-            // Target HEAD / BODY / LEGS
             addRenderableWidget(Button.builder(
                 Component.literal("Target  " + CrystalHubConfig.aimAssistTarget),
                 b -> {
@@ -85,7 +80,6 @@ public final class CrystalHubScreen extends Screen {
                 }
             ).bounds(x + 180, y + 216, 150, 22).build());
 
-            // Smooth -
             addRenderableWidget(Button.builder(
                 Component.literal("Smooth -"),
                 b -> {
@@ -96,7 +90,6 @@ public final class CrystalHubScreen extends Screen {
                 }
             ).bounds(x + 340, y + 216, 70, 22).build());
 
-            // Smooth +
             addRenderableWidget(Button.builder(
                 Component.literal("Smooth +"),
                 b -> {
@@ -200,7 +193,6 @@ public final class CrystalHubScreen extends Screen {
 
         g.fill(x + 15, y + activeY, x + 148, y + activeY + 27, 0xFF382052);
         g.fill(x + 15, y + activeY, x + 19, y + activeY + 27, 0xFFC084FC);
-
         g.fill(x + 176, y + 110, x + W - 25, y + 270, 0xC9221638);
         g.fill(x + 176, y + 110, x + W - 25, y + 112, 0xFF7136A8);
 
@@ -208,7 +200,6 @@ public final class CrystalHubScreen extends Screen {
 
         g.text(font, "CRYSTAL", x + 65, y + 21, 0xFFFFFFFF, true);
         g.text(font, "H U B  CLIENT", x + 65, y + 39, 0xFFC084FC, false);
-
         g.text(font, "NAVIGATION", x + 25, y + 78, 0xFFAA8BC8, false);
         g.text(font, selected.toUpperCase(), x + 183, y + 91, 0xFFE9D5FF, true);
         g.fill(x + 180, y + 109, x + W - 25, y + 110, 0xFF583878);
@@ -220,27 +211,18 @@ public final class CrystalHubScreen extends Screen {
                     "   |   Smooth: " +
                     String.format("%.2f", CrystalHubConfig.aimAssistSmooth),
                 x + 190, y + 245, 0xFFC084FC, true);
-            g.text(font, "Keys: G = Clicker  |  R = Aim Assist  |  Controls",
+            g.text(font, "Keys: G = Clicker  |  R = Aim Assist",
                 x + 190, y + 258, 0xFFB9A8D0, false);
         } else if (selected.equals("Movement")) {
             g.text(font, "Movement Modules", x + 190, y + 120, 0xFFFFFFFF, true);
-            g.text(font,
-                "Multiplier: " +
-                    String.format("%.2f", CrystalHubConfig.speedMultiplier),
-                x + 190, y + 180, 0xFFC084FC, false);
         } else if (selected.equals("Visuals")) {
             g.text(font, "Visual Modules", x + 190, y + 120, 0xFFFFFFFF, true);
-            g.text(font, "Player ESP boxes: " +
-                    (CrystalHubConfig.playerEspBoxes ? "ON" : "OFF"),
-                x + 190, y + 180, 0xFFC084FC, false);
         } else if (selected.equals("Player")) {
             g.text(font, "Player Settings", x + 190, y + 140, 0xFFFFFFFF, true);
         } else if (selected.equals("World")) {
             g.text(font, "World Settings", x + 190, y + 140, 0xFFFFFFFF, true);
         } else {
             g.text(font, "Client Settings", x + 190, y + 120, 0xFFFFFFFF, true);
-            g.text(font, "Sounds, animations and keybinds.",
-                x + 190, y + 210, 0xFFC084FC, false);
         }
 
         g.text(font, "RIGHT CTRL  •  TOGGLE MENU",
