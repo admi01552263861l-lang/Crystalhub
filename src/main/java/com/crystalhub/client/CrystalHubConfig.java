@@ -4,43 +4,30 @@ public final class CrystalHubConfig {
 
     private CrystalHubConfig() {}
 
-    // ========================= Combat =========================
     public static boolean autoClickerEnabled = false;
     public static int cps = 5;
 
-    // Aim Assist
     public static boolean aimAssistEnabled = false;
-    /** HEAD / BODY / LEGS */
     public static String aimAssistTarget = "BODY";
-    /** 0.05 = ناعم ، 1.0 = قوي */
     public static float aimAssistSmooth = 0.35f;
-    /** مجال الرؤية بالدرجات */
     public static float aimAssistFov = 90f;
-    /** المدى بالبلوكات */
     public static double aimAssistRange = 64.0;
 
-    // ========================= Movement =========================
     public static boolean speedEnabled = false;
     public static double speedMultiplier = 1.2;
 
-    // ========================= Visuals =========================
     public static boolean playerEspEnabled = false;
     public static boolean playerEspBoxes = true;
 
-    // ========================= Interface =========================
     public static boolean soundEffects = true;
     public static boolean menuAnimations = true;
     public static boolean moduleAnimations = true;
 
-    // ========================= Key defaults (GLFW key codes) =========================
-    /** G */
     public static int autoClickerKey = 71;
-    /** R */
     public static int aimAssistKey = 82;
     public static int speedKey = 0;
     public static int playerEspKey = 0;
 
-    // ========================= Auto Clicker runtime =========================
     public static long lastClickTime = 0L;
     public static boolean clickPressed = false;
 
@@ -81,12 +68,11 @@ public final class CrystalHubConfig {
         aimAssistRange = Math.max(4.0, Math.min(value, 128.0));
     }
 
-    /** ارتفاع نقطة التصويب كنسبة من طول الكيان */
     public static double aimHeightFactor() {
         return switch (aimAssistTarget) {
             case "HEAD" -> 0.9;
             case "LEGS" -> 0.15;
-            default -> 0.5; // BODY
+            default -> 0.5;
         };
     }
 }
