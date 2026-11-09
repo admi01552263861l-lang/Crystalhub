@@ -13,9 +13,6 @@ public final class CrystalHubScreen extends Screen {
 
     private String selected = "Combat";
 
-    private boolean playerEsp = false;
-    private boolean chestEsp = false;
-
     public CrystalHubScreen() {
         super(Component.literal("Crystal Hub"));
     }
@@ -26,9 +23,8 @@ public final class CrystalHubScreen extends Screen {
         int y = (height - H) / 2;
 
         tab(x, y, "Combat", 84);
-        tab(x, y, "ESP", 116);
-        tab(x, y, "Settings", 148);
-        tab(x, y, "About", 180);
+        tab(x, y, "Settings", 116);
+        tab(x, y, "About", 148);
 
         if (selected.equals("Combat")) {
             addRenderableWidget(Button.builder(
@@ -46,33 +42,15 @@ public final class CrystalHubScreen extends Screen {
                 b -> {
                     CrystalHubConfig.cps =
                         CrystalHubConfig.cps >= 10
-                            ? 1
-                            : CrystalHubConfig.cps + 1;
+                            ? 1 : CrystalHubConfig.cps + 1;
                     rebuildWidgets();
                 }
             ).bounds(x + 180, y + 170, 250, 25).build());
         }
 
-        if (selected.equals("ESP")) {
-            addRenderableWidget(Button.builder(
-                Component.literal("Player ESP: " + (playerEsp ? "ON" : "OFF")),
-                b -> {
-                    playerEsp = !playerEsp;
-                    rebuildWidgets();
-                }
-            ).bounds(x + 180, y + 145, 250, 25).build());
-
-            addRenderableWidget(Button.builder(
-                Component.literal("Chest ESP: " + (chestEsp ? "ON" : "OFF")),
-                b -> {
-                    chestEsp = !chestEsp;
-                    rebuildWidgets();
-                }
-            ).bounds(x + 180, y + 180, 250, 25).build());
-        }
-
         addRenderableWidget(Button.builder(
-            Component.literal("Close"), b -> onClose()
+            Component.literal("Close"),
+            b -> onClose()
         ).bounds(x + W - 92, y + H - 38, 76, 24).build());
     }
 
@@ -104,9 +82,8 @@ public final class CrystalHubScreen extends Screen {
         g.fill(x + 10, y + 72, x + 148, y + H - 12, 0xE9111D35);
 
         int activeY = switch (selected) {
-            case "ESP" -> 116;
-            case "Settings" -> 148;
-            case "About" -> 180;
+            case "Settings" -> 116;
+            case "About" -> 148;
             default -> 84;
         };
 
@@ -123,19 +100,18 @@ public final class CrystalHubScreen extends Screen {
 
         g.fill(x + 178, y + 111, x + W - 32, y + 112, 0xFF34486D);
 
-        String heading = selected.equals("Combat")
-            ? "Combat modules"
-            : selected.equals("ESP")
-                ? "Visual features"
-                : selected.equals("Settings")
-                    ? "Personalize your hub"
-                    : "About Crystal Hub";
-
-        g.text(font, heading, x + 178, y + 132, 0xFFFFFFFF, true);
-
         if (selected.equals("Combat")) {
-            g.text(font, "Toggle key: G (change in Minecraft Controls)",
+            g.text(font, "Combat modules", x + 178, y + 132, 0xFFFFFFFF, true);
+            g.text(font, "Activation key: G (change in Controls)",
                 x + 180, y + 215, 0xFFB4C2DD, false);
+            g.text(font, "Speed range: 1 - 10 CPS",
+                x + 180, y + 230, 0xFFB4C2DD, false);
+        } else if (selected.equals("Settings")) {
+            g.text(font, "Personalize your hub",
+                x + 178, y + 132, 0xFFFFFFFF, true);
+        } else {
+            g.text(font, "Made for your Minecraft client",
+                x + 178, y + 132, 0xFFFFFFFF, true);
         }
 
         g.text(font, "RIGHT CTRL - TOGGLE MENU",
