@@ -1,40 +1,46 @@
-
 package com.crystalhub.client;
 
 public final class CrystalHubConfig {
 
     private CrystalHubConfig() {}
 
-    // Combat
+    // ========================= Combat =========================
     public static boolean autoClickerEnabled = false;
     public static int cps = 5;
 
-    // Aim Assist settings
+    // Aim Assist
     public static boolean aimAssistEnabled = false;
-
-    // Options: HEAD, BODY, LEGS
+    /** HEAD / BODY / LEGS */
     public static String aimAssistTarget = "BODY";
+    /** 0.05 = ناعم ، 1.0 = قوي */
+    public static float aimAssistSmooth = 0.35f;
+    /** مجال الرؤية بالدرجات */
+    public static float aimAssistFov = 90f;
+    /** المدى بالبلوكات */
+    public static double aimAssistRange = 64.0;
 
-    // Movement
+    // ========================= Movement =========================
     public static boolean speedEnabled = false;
     public static double speedMultiplier = 1.2;
 
-    // Visuals
+    // ========================= Visuals =========================
     public static boolean playerEspEnabled = false;
     public static boolean playerEspBoxes = true;
 
-    // Interface
+    // ========================= Interface =========================
     public static boolean soundEffects = true;
     public static boolean menuAnimations = true;
     public static boolean moduleAnimations = true;
 
-    // Key defaults
+    // ========================= Key defaults (GLFW key codes) =========================
+    /** G */
     public static int autoClickerKey = 71;
-    public static int aimAssistKey = 0;
+    /** R */
+    public static int aimAssistKey = 82;
     public static int speedKey = 0;
     public static int playerEspKey = 0;
 
-    // Auto Clicker runtime
+    // ========================= Auto Clicker runtime =========================
     public static long lastClickTime = 0L;
     public static boolean clickPressed = false;
 
@@ -56,11 +62,31 @@ public final class CrystalHubConfig {
             aimAssistTarget = "BODY";
             return;
         }
-
         switch (target.toUpperCase()) {
             case "HEAD" -> aimAssistTarget = "HEAD";
             case "LEGS" -> aimAssistTarget = "LEGS";
             default -> aimAssistTarget = "BODY";
         }
+    }
+
+    public static void setAimAssistSmooth(float value) {
+        aimAssistSmooth = Math.max(0.05f, Math.min(value, 1.0f));
+    }
+
+    public static void setAimAssistFov(float value) {
+        aimAssistFov = Math.max(20f, Math.min(value, 180f));
+    }
+
+    public static void setAimAssistRange(double value) {
+        aimAssistRange = Math.max(4.0, Math.min(value, 128.0));
+    }
+
+    /** ارتفاع نقطة التصويب كنسبة من طول الكيان */
+    public static double aimHeightFactor() {
+        return switch (aimAssistTarget) {
+            case "HEAD" -> 0.9;
+            case "LEGS" -> 0.15;
+            default -> 0.5; // BODY
+        };
     }
 }
