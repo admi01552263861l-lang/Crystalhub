@@ -28,6 +28,8 @@ public class CrystalHubClient implements ClientModInitializer {
             )
         );
 
+        CrystalHubAutoClicker.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.consumeClick()) {
                 if (client.screen instanceof CrystalHubScreen) {
