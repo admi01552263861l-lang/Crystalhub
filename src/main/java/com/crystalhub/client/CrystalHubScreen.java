@@ -7,9 +7,17 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 public final class CrystalHubScreen extends Screen {
+
     private static final int W = 500;
     private static final int H = 310;
-    private String selected = "Home";
+
+    private String selected = "Combat";
+
+    private boolean autoClicker = false;
+    private boolean playerEsp = false;
+    private boolean chestEsp = false;
+
+    private int cps = 10;
 
     public CrystalHubScreen() {
         super(Component.literal("Crystal Hub"));
@@ -20,14 +28,57 @@ public final class CrystalHubScreen extends Screen {
         int x = (width - W) / 2;
         int y = (height - H) / 2;
 
-        tab(x, y, "Home", 84);
-        tab(x, y, "Modules", 116);
+        tab(x, y, "Combat", 84);
+        tab(x, y, "ESP", 116);
         tab(x, y, "Settings", 148);
         tab(x, y, "About", 180);
+
+        if (selected.equals("Combat")) {
+            addRenderableWidget(Button.builder(
+                toggleText("Auto Clicker", autoClicker),
+                b -> {
+                    autoClicker = !autoClicker;
+                    rebuildWidgets();
+                }
+            ).bounds(x + 178, y + 166, 130, 25).build());
+
+            addRenderableWidget(Button.builder(
+                Component.literal("CPS: " + cps),
+                b -> {
+                    cps += 5;
+                    if (cps > 20) cps = 5;
+                    rebuildWidgets();
+                }
+            ).bounds(x + 326, y + 166, 120, 25).build());
+        }
+
+        if (selected.equals("ESP")) {
+            addRenderableWidget(Button.builder(
+                toggleText("Player ESP", playerEsp),
+                b -> {
+                    playerEsp = !playerEsp;
+                    rebuildWidgets();
+                }
+            ).bounds(x + 178, y + 150, 268, 25).build());
+
+            addRenderableWidget(Button.builder(
+                toggleText("Chest ESP", chestEsp),
+                b -> {
+                    chestEsp = !chestEsp;
+                    rebuildWidgets();
+                }
+            ).bounds(x + 178, y + 190, 268, 25).build());
+        }
 
         addRenderableWidget(Button.builder(
             Component.literal("Close"), b -> onClose()
         ).bounds(x + W - 92, y + H - 38, 76, 24).build());
+    }
+
+    private Component toggleText(String name, boolean enabled) {
+        return Component.literal(
+            name + ": " + (enabled ? "ON" : "OFF")
+        );
     }
 
     private void tab(int x, int y, String name, int offset) {
@@ -41,7 +92,10 @@ public final class CrystalHubScreen extends Screen {
 
     @Override
     public void extractRenderState(
-        GuiGraphicsExtractor g, int mouseX, int mouseY, float delta
+        GuiGraphicsExtractor g,
+        int mouseX,
+        int mouseY,
+        float delta
     ) {
         int x = (width - W) / 2;
         int y = (height - H) / 2;
@@ -59,7 +113,7 @@ public final class CrystalHubScreen extends Screen {
         g.fill(x + 10, y + 72, x + 148, y + H - 12, 0xE9111D35);
 
         int activeY = switch (selected) {
-            case "Modules" -> 116;
+            case "ESP" -> 116;
             case "Settings" -> 148;
             case "About" -> 180;
             default -> 84;
@@ -74,42 +128,50 @@ public final class CrystalHubScreen extends Screen {
         super.extractRenderState(g, mouseX, mouseY, delta);
 
         g.text(font, "CRYSTAL HUB", x + 64, y + 22, 0xFFFFFFFF, true);
-        g.text(font, "YOUR CLIENT  /  YOUR SPACE", x + 64, y + 39, 0xFFA9BFFF, false);
+        g.text(font, "YOUR CLIENT / YOUR SPACE", x + 64, y + 39, 0xFFA9BFFF, false);
         g.text(font, "NAVIGATION", x + 25, y + 78, 0xFF829BCB, false);
 
         g.text(font, selected.toUpperCase(), x + 178, y + 91, 0xFFC5D5FF, true);
         g.fill(x + 178, y + 111, x + W - 32, y + 112, 0xFF34486D);
 
-        String heading = switch (selected) {
-            case "Modules" -> "Your modules";
-            case "Settings" -> "Personalize your hub";
-            case "About" -> "Made for your Minecraft client";
-            default -> "Welcome to Crystal Hub";
-        };
+        switch (selected) {
+            case "Combat" -> renderCombat(g, x, y);
+            case "ESP" -> renderESP(g, x, y);
+            case "Settings" -> {
+                g.text(font, "Personalize your hub", x + 178, y + 140, 0xFFFFFFFF, true);
+                g.text(font, "More settings coming soon.", x + 178, y + 160, 0xFFB4C2DD, false);
+            }
+            case "About" -> {
+                g.text(font, "Crystal Hub", x + 178, y + 140, 0xFFFFFFFF, true);
+                g.text(font, "A crystal-inspired Minecraft client.", x + 178, y + 160, 0xFFB4C2DD, false);
+            }
+        }
 
-        String description = switch (selected) {
-            case "Modules" -> "Your enabled features will appear here.";
-            case "Settings" -> "Customize your interface here.";
-            case "About" -> "A crystal-inspired Minecraft interface.";
-            default -> "A clean space for your favorite tools.";
-        };
-
-        g.text(font, heading, x + 178, y + 132, 0xFFFFFFFF, true);
-        g.text(font, description, x + 178, y + 151, 0xFFB4C2DD, false);
-
-        g.fill(x + 178, y + 184, x + 316, y + 246, 0xFF17243B);
-        g.fill(x + 326, y + 184, x + W - 28, y + 246, 0xFF17243B);
-
-        g.fill(x + 178, y + 184, x + 316, y + 186, 0xFF647FEA);
-        g.fill(x + 326, y + 184, x + W - 28, y + 186, 0xFF9A79E8);
-
-        g.text(font, "CRYSTAL CORE", x + 190, y + 198, 0xFF9EB9FF, true);
-        g.text(font, "READY", x + 190, y + 220, 0xFFFFFFFF, false);
-        g.text(font, "INTERFACE", x + 338, y + 198, 0xFFC2A7FF, true);
-        g.text(font, "ACTIVE", x + 338, y + 220, 0xFFFFFFFF, false);
-
-        g.text(font, "RIGHT CTRL  -  TOGGLE MENU",
+        g.text(font, "RIGHT CTRL - TOGGLE MENU",
             x + 178, y + 270, 0xFF8297C7, false);
+    }
+
+    private void renderCombat(GuiGraphicsExtractor g, int x, int y) {
+        g.text(font, "Combat controls", x + 178, y + 132, 0xFFFFFFFF, true);
+        g.text(font, "Auto Clicker", x + 178, y + 151, 0xFF9EB9FF, false);
+        g.text(font, "Click rate: " + cps + " CPS", x + 326, y + 151, 0xFFC2A7FF, false);
+
+        g.text(font, "Toggle the setting and adjust CPS.",
+            x + 178, y + 207, 0xFFB4C2DD, false);
+        g.text(font, "Status: " + (autoClicker ? "Enabled" : "Disabled"),
+            x + 178, y + 228, 0xFF9EB9FF, false);
+    }
+
+    private void renderESP(GuiGraphicsExtractor g, int x, int y) {
+        g.text(font, "ESP options", x + 178, y + 132, 0xFFFFFFFF, true);
+
+        g.text(font, "Player ESP", x + 178, y + 222, 0xFFFF7777, true);
+        g.text(font, "Chest ESP", x + 326, y + 222, 0xFFFF7777, true);
+
+        g.text(font, "Player: " + (playerEsp ? "ON" : "OFF"),
+            x + 178, y + 245, 0xFFB4C2DD, false);
+        g.text(font, "Chest: " + (chestEsp ? "ON" : "OFF"),
+            x + 326, y + 245, 0xFFB4C2DD, false);
     }
 
     @Override
