@@ -8,8 +8,8 @@ import net.minecraft.network.chat.Component;
 
 public final class CrystalHubScreen extends Screen {
 
-    private static final int W = 500;
-    private static final int H = 310;
+    private static final int W = 540;
+    private static final int H = 340;
 
     private String selected = "Combat";
 
@@ -22,30 +22,41 @@ public final class CrystalHubScreen extends Screen {
         int x = (width - W) / 2;
         int y = (height - H) / 2;
 
-        tab(x, y, "Combat", 84);
-        tab(x, y, "Settings", 116);
-        tab(x, y, "About", 148);
+        addTab(x, y, "Combat", 14);
+        addTab(x, y, "Movement", 105);
+        addTab(x, y, "Visuals", 196);
+        addTab(x, y, "Player", 287);
+        addTab(x, y, "World", 378);
+        addTab(x, y, "Settings", 469);
 
         if (selected.equals("Combat")) {
             addRenderableWidget(Button.builder(
-                Component.literal("Auto Clicker: " +
+                Component.literal("Auto Clicker  •  " +
                     (CrystalHubConfig.autoClickerEnabled ? "ON" : "OFF")),
                 b -> {
                     CrystalHubConfig.autoClickerEnabled =
                         !CrystalHubConfig.autoClickerEnabled;
                     rebuildWidgets();
                 }
-            ).bounds(x + 180, y + 135, 250, 25).build());
+            ).bounds(x + 180, y + 145, 310, 28).build());
 
             addRenderableWidget(Button.builder(
-                Component.literal("Speed: " + CrystalHubConfig.cps + " / 10"),
+                Component.literal("Speed  -"),
                 b -> {
                     CrystalHubConfig.cps =
-                        CrystalHubConfig.cps >= 10
-                            ? 1 : CrystalHubConfig.cps + 1;
+                        Math.max(1, CrystalHubConfig.cps - 1);
                     rebuildWidgets();
                 }
-            ).bounds(x + 180, y + 170, 250, 25).build());
+            ).bounds(x + 180, y + 185, 90, 25).build());
+
+            addRenderableWidget(Button.builder(
+                Component.literal("Speed  +"),
+                b -> {
+                    CrystalHubConfig.cps =
+                        Math.min(10, CrystalHubConfig.cps + 1);
+                    rebuildWidgets();
+                }
+            ).bounds(x + 400, y + 185, 90, 25).build());
         }
 
         addRenderableWidget(Button.builder(
@@ -54,14 +65,14 @@ public final class CrystalHubScreen extends Screen {
         ).bounds(x + W - 92, y + H - 38, 76, 24).build());
     }
 
-    private void tab(int x, int y, String name, int offset) {
+    private void addTab(int x, int y, String name, int offset) {
         addRenderableWidget(Button.builder(
             Component.literal(name),
             b -> {
                 selected = name;
                 rebuildWidgets();
             }
-        ).bounds(x + 18, y + offset, 116, 25).build());
+        ).bounds(x + 16, y + 82 + (offset / 91) * 34, 125, 27).build());
     }
 
     @Override
@@ -71,51 +82,100 @@ public final class CrystalHubScreen extends Screen {
         int x = (width - W) / 2;
         int y = (height - H) / 2;
 
-        g.fill(0, 0, width, height, 0xA6070B18);
-        g.fill(x - 2, y - 2, x + W + 2, y + H + 2, 0xFF6478E8);
-        g.fill(x, y, x + W, y + H, 0xF10C1325);
+        // Ambient dark background
+        g.fill(0, 0, width, height, 0xD9070312);
 
-        g.fill(x + 10, y + 10, x + W - 10, y + 62, 0xFF172542);
-        g.fill(x + 22, y + 20, x + 54, y + 52, 0xFF344D91);
-        g.fill(x + 27, y + 25, x + 49, y + 47, 0xFF91B8FF);
+        // Outer purple glow layers
+        g.fill(x - 3, y - 3, x + W + 3, y + H + 3, 0xFF7136A8);
+        g.fill(x - 1, y - 1, x + W + 1, y + H + 1, 0xFF35204F);
 
-        g.fill(x + 10, y + 72, x + 148, y + H - 12, 0xE9111D35);
+        // Main glass panel
+        g.fill(x, y, x + W, y + H, 0xF20D0819);
 
+        // Header
+        g.fill(x + 10, y + 10, x + W - 10, y + 65, 0xE51B102B);
+        g.fill(x + 23, y + 20, x + 55, y + 52, 0xFF7135B4);
+        g.fill(x + 29, y + 26, x + 49, y + 46, 0xFFC084FC);
+
+        // Sidebar and content
+        g.fill(x + 10, y + 74, x + 153, y + H - 12, 0xE8171025);
+        g.fill(x + 163, y + 74, x + W - 10, y + H - 12, 0xB51B112B);
+
+        // Selected tab highlight
         int activeY = switch (selected) {
-            case "Settings" -> 116;
-            case "About" -> 148;
-            default -> 84;
+            case "Movement" -> 116;
+            case "Visuals" -> 150;
+            case "Player" -> 184;
+            case "World" -> 218;
+            case "Settings" -> 252;
+            default -> 82;
         };
 
-        g.fill(x + 15, y + activeY, x + 139, y + activeY + 25, 0xFF293E70);
-        g.fill(x + 15, y + activeY, x + 18, y + activeY + 25, 0xFF8EB5FF);
-        g.fill(x + 156, y + 72, x + W - 10, y + H - 12, 0xB719263F);
+        g.fill(x + 15, y + activeY, x + 148, y + activeY + 27,
+            0xFF382052);
+        g.fill(x + 15, y + activeY, x + 19, y + activeY + 27,
+            0xFFC084FC);
+
+        // Content card
+        g.fill(x + 176, y + 121, x + W - 25, y + 224, 0xC9221638);
+        g.fill(x + 176, y + 121, x + W - 25, y + 123, 0xFF7136A8);
 
         super.extractRenderState(g, mouseX, mouseY, delta);
 
-        g.text(font, "CRYSTAL HUB", x + 64, y + 22, 0xFFFFFFFF, true);
-        g.text(font, "YOUR CLIENT / YOUR SPACE", x + 64, y + 39, 0xFFA9BFFF, false);
-        g.text(font, "NAVIGATION", x + 25, y + 78, 0xFF829BCB, false);
-        g.text(font, selected.toUpperCase(), x + 178, y + 91, 0xFFC5D5FF, true);
+        g.text(font, "CRYSTAL", x + 65, y + 21, 0xFFFFFFFF, true);
+        g.text(font, "H U B  CLIENT", x + 65, y + 39, 0xFFC084FC, false);
 
-        g.fill(x + 178, y + 111, x + W - 32, y + 112, 0xFF34486D);
+        g.text(font, "NAVIGATION", x + 25, y + 78, 0xFFAA8BC8, false);
+        g.text(font, selected.toUpperCase(), x + 183, y + 91,
+            0xFFE9D5FF, true);
+
+        g.fill(x + 180, y + 109, x + W - 25, y + 110, 0xFF583878);
 
         if (selected.equals("Combat")) {
-            g.text(font, "Combat modules", x + 178, y + 132, 0xFFFFFFFF, true);
-            g.text(font, "Activation key: G (change in Controls)",
-                x + 180, y + 215, 0xFFB4C2DD, false);
-            g.text(font, "Speed range: 1 - 10 CPS",
-                x + 180, y + 230, 0xFFB4C2DD, false);
-        } else if (selected.equals("Settings")) {
-            g.text(font, "Personalize your hub",
-                x + 178, y + 132, 0xFFFFFFFF, true);
+            g.text(font, "Combat Modules", x + 190, y + 135,
+                0xFFFFFFFF, true);
+
+            g.text(font, "Auto Clicker", x + 190, y + 153,
+                0xFFD8C5F2, false);
+
+            g.text(font, "Current speed: " + CrystalHubConfig.cps + " CPS",
+                x + 190, y + 216, 0xFFC084FC, true);
+
+            g.text(font, "Activation key: G - Change in Controls",
+                x + 190, y + 239, 0xFFB9A8D0, false);
+
+            g.text(font, "Aim Assist settings will be added with its engine.",
+                x + 190, y + 260, 0xFFAA8BC8, false);
+
+        } else if (selected.equals("Movement")) {
+            g.text(font, "Movement Modules", x + 190, y + 140,
+                0xFFFFFFFF, true);
+            g.text(font, "Speed module will be connected next.",
+                x + 190, y + 165, 0xFFC084FC, false);
+
+        } else if (selected.equals("Visuals")) {
+            g.text(font, "Visual Modules", x + 190, y + 140,
+                0xFFFFFFFF, true);
+            g.text(font, "Player ESP will be connected to the renderer.",
+                x + 190, y + 165, 0xFFC084FC, false);
+
+        } else if (selected.equals("Player")) {
+            g.text(font, "Player Settings", x + 190, y + 140,
+                0xFFFFFFFF, true);
+
+        } else if (selected.equals("World")) {
+            g.text(font, "World Settings", x + 190, y + 140,
+                0xFFFFFFFF, true);
+
         } else {
-            g.text(font, "Made for your Minecraft client",
-                x + 178, y + 132, 0xFFFFFFFF, true);
+            g.text(font, "Client Settings", x + 190, y + 140,
+                0xFFFFFFFF, true);
+            g.text(font, "Sounds, animations and keybinds.",
+                x + 190, y + 165, 0xFFC084FC, false);
         }
 
-        g.text(font, "RIGHT CTRL - TOGGLE MENU",
-            x + 178, y + 270, 0xFF8297C7, false);
+        g.text(font, "RIGHT CTRL  •  TOGGLE MENU",
+            x + 180, y + 286, 0xFFAA8BC8, false);
     }
 
     @Override
